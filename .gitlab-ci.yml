@@ -11,7 +11,7 @@ variables:
   DOCKER_DRIVER: overlay2
 
 before_script:
-  - docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USER" --password-stdin
 
 build:
   stage: build
@@ -21,4 +21,4 @@ build:
 push:
   stage: push
   script:
-    - docker push paulo/projeto-cicd:latest
+    - docker push paulo/projeto-cicd:latest .|
