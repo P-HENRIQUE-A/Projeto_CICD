@@ -1,24 +1,39 @@
-image: docker:latest
-
-services:
-  - docker:dind
-
 stages:
-  - build
-  - push
+  - build-image
+  - deploy-gcp
 
 variables:
-  DOCKER_DRIVER: overlay2
-
-before_script:
-  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USER" --password-stdin
+  # Usa o registry do GitLab
+  IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
 
 build:
-  stage: build
+  stage: build-image
+  tags:
+    - deploy-gcp
+  image: docker:latest
+  services:
+    - docker:dind
   script:
-    - docker build -t paulo/projeto-cicd:latest .
+    # Login no GitLab Container Registry (NÃO no Docker Hub)
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
+    - docker build -t $IMAGE_TAG .
+    - docker push $IMAGE_TAG
+  rules:
+    - if: $CI_COMMIT_BRANCH != "main"
 
-push:
-  stage: push
+deploy:
+  stage: deploy-gcp
+  tags:
+    - deploy-gcp
+  image: google/cloud-sdk:latest
   script:
-    - docker push paulo/projeto-cicd:latest .|
+    - echo $GCP_SERVICE_ACCOUNT_KEY > /tmp/gcp-key.json
+    - gcloud auth activate-service-account --key-file=/tmp/gcp-key.json
+    - gcloud config set project $GCP_PROJECT_ID
+    - gcloud run deploy meu-site
+        --image $IMAGE_TAG
+        --platform managed
+        --region us-central1
+        --allow-unauthenticated
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
