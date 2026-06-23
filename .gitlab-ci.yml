@@ -16,9 +16,9 @@ before_script:
 build:
   stage: build
   script:
-   - docker build -t henrique150785/projeto-cicd:latest .
+    - docker build -t paulo/projeto-cicd:latest .
 
 push:
   stage: push
   script:
-  - docker build -t henrique150785/projeto-cicd:latest .
+    - docker push paulo/projeto-cicd:latest
