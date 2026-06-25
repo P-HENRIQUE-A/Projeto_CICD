@@ -7,9 +7,8 @@ variables:
 
 build:
   stage: build-image
-  # REMOVA a linha de tags ou comente
-  # tags:
-  #   - deploy-gcp
+  tags:
+   - deploy-gcp
   image: docker:latest
   services:
     - docker:dind
@@ -21,9 +20,8 @@ build:
 
 deploy:
   stage: deploy-gcp
-  # REMOVA a linha de tags ou comente
-  # tags:
-  #   - deploy-gcp
+  tags:
+    - deploy-gcp
   image: google/cloud-sdk:latest
   script:
     - echo $GCP_SERVICE_ACCOUNT_KEY > /tmp/gcp-key.json
