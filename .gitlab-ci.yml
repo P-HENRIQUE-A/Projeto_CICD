@@ -8,7 +8,7 @@ variables:
 build:
   stage: build-image
   tags:
-   - deploy-gcp
+    - deploy-gcp
   image: docker:latest
   services:
     - docker:dind
