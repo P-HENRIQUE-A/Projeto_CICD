@@ -1,34 +1,15 @@
 stages:
-  - build-image
-  - deploy-gcp
-
-variables:
-  IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
+  - build
+  - quality
 
 build:
-  stage: build-image
- 
-  image: docker:latest
-  services:
-    - docker:dind
+  image: node:latest
+  stage: build
   script:
-    - docker build -t $IMAGE_TAG .
-    - docker push $IMAGE_TAG
-  rules:
-    - if: $CI_COMMIT_BRANCH != "main"
+    - echo "Building the project..."
 
-deploy:
-  stage: deploy-gcp
- 
-  image: google/cloud-sdk:latest
+test: 
+  image: node:latest
+  stage: quality
   script:
-    - echo $GCP_SERVICE_ACCOUNT_KEY > /tmp/gcp-key.json
-    - gcloud auth activate-service-account --key-file=/tmp/gcp-key.json
-    - gcloud config set project $GCP_PROJECT_ID
-    - gcloud run deploy meu-site
-        --image $IMAGE_TAG
-        --platform managed
-        --region us-central1
-        --allow-unauthenticated
-  rules:
-    - if: $CI_COMMIT_BRANCH == "main"
+    - echo "testing the project..."
