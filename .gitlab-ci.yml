@@ -1,15 +1,32 @@
 stages:
-  - build
-  - quality
+  - validate
+  - deploy
 
-build:
-  image: node:latest
-  stage: build
+validate:
+  image: node:18-alpine
+  stage: validate
+  before_script:
+    - apk add --no-cache curl
+    - npm install -g htmlhint csslint http-server
   script:
-    - echo "Building the project..."
+    - htmlhint index.html templatemo_598_sleeky_pro/*.html
+    - csslint templatemo_598_sleeky_pro/*.css
+    - http-server . -p 8080 >/tmp/http-server.log 2>&1 &
+    - sleep 2
+    - curl -f http://127.0.0.1:8080/index.html
+    - curl -f http://127.0.0.1:8080/templatemo_598_sleeky_pro/index.html
 
-test: 
-  image: node:latest
-  stage: quality
+pages:
+  image: alpine:latest
+  stage: deploy
   script:
-    - echo "testing the project..."
+    - mkdir -p public
+    - cp index.html public/
+    - cp -r templatemo_598_sleeky_pro public/
+  artifacts:
+    paths:
+      - public
+  rules:
+    - if: '$CI_COMMIT_BRANCH =~ /^(main|master)$/'
+      when: always
+    - when: never
